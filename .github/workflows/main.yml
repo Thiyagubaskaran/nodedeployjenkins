@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+# Trigger the pipeline on specific events
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Define jobs
+jobs:
+  build:
+    # Define the environment where the steps run
+    runs-on: ubuntu-latest
+
+    # Steps to execute
+    steps:
+      # Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Run tests
+      - name: Run Tests
+        run: npm test
+
+      # Build the application
+      - name: Build Application
+        run: npm run build
+
+  deploy:
+    # This job runs only after 'build' succeeds
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Deploy to a server or cloud
+      - name: Deploy to Production
+        run: echo "Deploying the application..."
