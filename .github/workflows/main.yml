@@ -31,7 +31,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # Run tests
+      # Run tests (Uncomment this if you want to run tests before building)
       # - name: Run Tests
       #   run: npm test
 
@@ -49,6 +49,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Deploy to a server or cloud
-      - name: Deploy to Production
-        run: echo "Deploying the application..."
+      # Set up Koyeb deployment
+      - name: Deploy to Koyeb
+        env:
+          KOYEB_API_KEY: ${{ secrets.KOYEB_API_KEY }}  # Use the secret API key for authentication
+        run: |
+          curl -X POST https://api.koyeb.com/v1/apps/<app-id>/deploy \
+          -H "Authorization: Bearer $KOYEB_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"branch": "main"}'
