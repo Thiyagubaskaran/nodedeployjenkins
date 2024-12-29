@@ -83,24 +83,24 @@
 #       - name: Checkout Code
 #         uses: actions/checkout@v3
 
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: '16'
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '16'
 
-#       - name: Install Dependencies
-#         run: npm install
+      # - name: Install Dependencies
+      #   run: npm install
 
-#       # Run tests (Uncomment if needed)
-#       # - name: Run Tests
-#       #   run: npm test
+      # # Run tests (Uncomment if needed)
+      # # - name: Run Tests
+      # #   run: npm test
 
-#       - name: Build Application
-#         run: npm run build
+      # - name: Build Application
+      #   run: npm run build
 
-#       - name: Check Build Directory  # Verify the output directory
-#         run: |
-#           ls -la ${{ github.workspace }}/dist  # Ensure 'dist' exists and has files
+      # - name: Check Build Directory  # Verify the output directory
+      #   run: |
+      #     ls -la ${{ github.workspace }}/dist  # Ensure 'dist' exists and has files
 #   deploy:
 #     needs: build
 #     runs-on: ubuntu-latest
@@ -143,6 +143,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install
+
+      # Run tests (Uncomment if needed)
+      # - name: Run Tests
+      #   run: npm test
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Check Build Directory  # Verify the output directory
+        run: |
+          ls -la ${{ github.workspace }}/dist  # Ensure 'dist' exists and has files
 
       # Write the SSH private key to a file
       - name: Write PEM file
