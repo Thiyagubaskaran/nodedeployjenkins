@@ -1,3 +1,66 @@
+# name: CI/CD Pipeline
+
+# # Trigger the pipeline on specific events
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# # Define jobs
+# jobs:
+#   build:
+#     # Define the environment where the steps run
+#     runs-on: ubuntu-latest
+
+#     # Steps to execute
+#     steps:
+#       # Checkout the repository code
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       # Set up Node.js
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '16'
+
+#       # Install dependencies
+#       - name: Install Dependencies
+#         run: npm install
+
+#       # Run tests (Uncomment this if you want to run tests before building)
+#       # - name: Run Tests
+#       #   run: npm test
+
+#       # Build the application
+#       - name: Build Application
+#         run: npm run build
+
+#   deploy:
+#     # This job runs only after 'build' succeeds
+#     needs: build
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Checkout the repository code
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       # Set up Koyeb deployment
+#       - name: Deploy to Koyeb
+#         env:
+#           KOYEB_API_KEY: ${{ secrets.KOYEB_API_KEY }}  # Use the secret API key for authentication
+#         run: |
+#           curl -X POST https://api.koyeb.com/v1/apps/meaningful-gayal/deploy \
+#           -H "Authorization: Bearer $KOYEB_API_KEY" \
+#           -H "Content-Type: application/json" \
+#           -d '{"branch": "main"}'
+
+
+
 name: CI/CD Pipeline
 
 # Trigger the pipeline on specific events
@@ -12,49 +75,50 @@ on:
 # Define jobs
 jobs:
   build:
-    # Define the environment where the steps run
     runs-on: ubuntu-latest
 
-    # Steps to execute
     steps:
-      # Checkout the repository code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # Install dependencies
       - name: Install Dependencies
         run: npm install
 
-      # Run tests (Uncomment this if you want to run tests before building)
+      # Run tests (Uncomment if needed)
       # - name: Run Tests
       #   run: npm test
 
-      # Build the application
       - name: Build Application
         run: npm run build
 
   deploy:
-    # This job runs only after 'build' succeeds
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Set up Koyeb deployment
-      - name: Deploy to Koyeb
+      - name: Set up SCP deployment
         env:
-          KOYEB_API_KEY: ${{ secrets.KOYEB_API_KEY }}  # Use the secret API key for authentication
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          PEM_KEY: ${{ secrets.PEM_KEY }}  # Store the PEM key as a secret in GitHub
+          LOCAL_PATH: ${{ github.workspace }}/dist  # Assuming your build output is in ./dist
+          REMOTE_PATH: "/home/ibierpsitx1/integration/nodetest"
+          PORT: "1844"
         run: |
-          curl -X POST https://api.koyeb.com/v1/apps/meaningful-gayal/deploy \
-          -H "Authorization: Bearer $KOYEB_API_KEY" \
-          -H "Content-Type: application/json" \
-          -d '{"branch": "main"}'
+          # Ensure the private key is available
+          echo "$PEM_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # SCP command to transfer files
+          scp -o StrictHostKeyChecking=no -i private_key.pem -P $PORT -r $LOCAL_PATH $DEPLOY_USER@$DEPLOY_SERVER:$REMOTE_PATH
+
+          # SSH to execute post-deployment tasks (e.g., checking remote files)
+          ssh -o StrictHostKeyChecking=no -i private_key.pem -p $PORT $DEPLOY_USER@$DEPLOY_SERVER "cd $REMOTE_PATH && ls -la"
