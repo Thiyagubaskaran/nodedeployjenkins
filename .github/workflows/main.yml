@@ -167,7 +167,9 @@ jobs:
       - name: Write PEM file
         run: echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/id_rsa
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
 
       # Set permissions for the PEM file
       - name: Set permissions for PEM file
