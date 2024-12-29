@@ -54,7 +54,7 @@ jobs:
         env:
           KOYEB_API_KEY: ${{ secrets.KOYEB_API_KEY }}  # Use the secret API key for authentication
         run: |
-          curl -X POST https://api.koyeb.com/v1/apps/<app-id>/deploy \
+          curl -X POST https://api.koyeb.com/v1/apps/continued-karly/deploy \
           -H "Authorization: Bearer $KOYEB_API_KEY" \
           -H "Content-Type: application/json" \
           -d '{"branch": "main"}'
