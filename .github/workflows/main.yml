@@ -110,7 +110,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           PEM_KEY: ${{ secrets.PEM_KEY }}  # Store the PEM key as a secret in GitHub
           LOCAL_PATH: ${{ github.workspace }}/dist  # Assuming your build output is in ./dist
-          REMOTE_PATH: "/home/ibierpsitx1/integration/nodetest"
+          REMOTE_PATH: "/home/ibierpsitx1/integration/nodedeploy"
           PORT: "1844"
         run: |
           # Ensure the private key is available
