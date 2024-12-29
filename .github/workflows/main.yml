@@ -61,67 +61,101 @@
 
 
 
+
+
+# name: CI/CD Pipeline
+
+# # Trigger the pipeline on specific events
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# # Define jobs
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '16'
+
+#       - name: Install Dependencies
+#         run: npm install
+
+#       # Run tests (Uncomment if needed)
+#       # - name: Run Tests
+#       #   run: npm test
+
+#       - name: Build Application
+#         run: npm run build
+
+#       - name: Check Build Directory  # Verify the output directory
+#         run: |
+#           ls -la ${{ github.workspace }}/dist  # Ensure 'dist' exists and has files
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       - name: Set up SCP deployment
+#         env:
+#           DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+#           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+#           PEM_KEY: ${{ secrets.PEM_KEY }}  # Store the PEM key as a secret in GitHub
+#           LOCAL_PATH: ${{ github.workspace }}/dist  # Assuming your build output is in ./dist
+#           REMOTE_PATH: "/home/ibierpsitx1/integration/nodedeploy"
+#           PORT: "1844"
+#         run: |
+#           # Ensure the private key is available
+#           echo "$PEM_KEY" > private_key.pem
+#           chmod 600 private_key.pem
+
+#           # SCP command to transfer files
+#           scp -o StrictHostKeyChecking=no -i private_key.pem -P $PORT -r $LOCAL_PATH $DEPLOY_USER@$DEPLOY_SERVER:$REMOTE_PATH
+
+#           # SSH to execute post-deployment tasks (e.g., checking remote files)
+#           ssh -o StrictHostKeyChecking=no -i private_key.pem -p $PORT $DEPLOY_USER@$DEPLOY_SERVER "cd $REMOTE_PATH && ls -la"
+
+
 name: CI/CD Pipeline
 
-# Trigger the pipeline on specific events
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
-# Define jobs
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install Dependencies
-        run: npm install
-
-      # Run tests (Uncomment if needed)
-      # - name: Run Tests
-      #   run: npm test
-
-      - name: Build Application
-        run: npm run build
-
-      - name: Check Build Directory  # Verify the output directory
-        run: |
-          ls -la ${{ github.workspace }}/dist  # Ensure 'dist' exists and has files
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up SCP deployment
+      # Write the SSH private key to a file
+      - name: Write PEM file
+        run: echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/id_rsa
         env:
-          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          PEM_KEY: ${{ secrets.PEM_KEY }}  # Store the PEM key as a secret in GitHub
-          LOCAL_PATH: ${{ github.workspace }}/dist  # Assuming your build output is in ./dist
-          REMOTE_PATH: "/home/ibierpsitx1/integration/nodedeploy"
-          PORT: "1844"
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Set permissions for the PEM file
+      - name: Set permissions for PEM file
+        run: chmod 600 /tmp/id_rsa
+
+      # Deploy via SSH
+      - name: Deploy to server
         run: |
-          # Ensure the private key is available
-          echo "$PEM_KEY" > private_key.pem
-          chmod 600 private_key.pem
-
-          # SCP command to transfer files
-          scp -o StrictHostKeyChecking=no -i private_key.pem -P $PORT -r $LOCAL_PATH $DEPLOY_USER@$DEPLOY_SERVER:$REMOTE_PATH
-
-          # SSH to execute post-deployment tasks (e.g., checking remote files)
-          ssh -o StrictHostKeyChecking=no -i private_key.pem -p $PORT $DEPLOY_USER@$DEPLOY_SERVER "cd $REMOTE_PATH && ls -la"
+          scp -i /tmp/id_rsa -P 1844 -r dist/* ${DEPLOY_USER}@${DEPLOY_SERVER}:${REMOTE_PATH}
+          ssh -i /tmp/id_rsa -p 1844 ${DEPLOY_USER}@${DEPLOY_SERVER} "cd ${REMOTE_PATH} && pm2 restart app || pm2 start app.js"
