@@ -4,8 +4,8 @@
   "description": "A Node.js project using Express and Axios",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
     "build": "babel src -d dist"
   },
   "keywords": [],
