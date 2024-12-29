@@ -96,6 +96,9 @@ jobs:
       - name: Build Application
         run: npm run build
 
+      - name: Check Build Directory  # Verify the output directory
+        run: |
+          ls -la ${{ github.workspace }}/dist  # Ensure 'dist' exists and has files
   deploy:
     needs: build
     runs-on: ubuntu-latest
